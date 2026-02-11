@@ -39,6 +39,7 @@
   "build": {
     "appId": "com.scitools.app",
     "productName": "SciTools",
+    "asar": false,
     "directories": {
       "output": "dist-electron"
     },
@@ -46,16 +47,25 @@
       "electron/**/*",
       "server/**/*",
       "dist/**/*",
-      "data/**/*",
+      ".env.example",
       "package.json"
     ],
+    "extraResources": [
+      {
+        "from": "data/",
+        "to": "data/",
+        "filter": ["!*.db", "!*.db-shm", "!*.db-wal", "!error.log", "!images/**", "!history/**", "!wallet/**"]
+      }
+    ],
     "mac": {
-      "target": "dmg",
-      "icon": "build/icon.icns"
+      "target": "dmg"
     },
     "win": {
-      "target": "nsis",
-      "icon": "build/icon.ico"
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   }
 }
