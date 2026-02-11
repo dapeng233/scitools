@@ -1,0 +1,17 @@
+node_modules/
+dist/
+dist_electron/
+
+.env
+*.log
+
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/error.log
+data/images/
+data/history/
+data/wallet/
+
+.DS_Store
+Thumbs.db

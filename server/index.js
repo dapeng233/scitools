@@ -1,0 +1,73 @@
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const rateLimit = require('express-rate-limit');
+const config = require('./config');
+const { router: authRouter, authMiddleware } = require('./routes/auth');
+const imageRouter = require('./routes/image');
+const historyRouter = require('./routes/history');
+const walletRouter = require('./routes/wallet');
+const paymentRouter = require('./routes/payment');
+const payment = require('./services/payment');
+const storage = require('./services/storage');
+
+const app = express();
+
+// 限流：每个 IP 每分钟最多 60 次请求
+const limiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { error: '请求太频繁，请稍后再试' }
+});
+
+// 注册/登录接口更严格限流
+const authLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: '操作太频繁，请稍后再试' }
+});
+
+// 中间件
+app.use(cors());
+app.use(limiter);
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+// 静态文件
+app.use(express.static(path.join(__dirname, '../dist')));
+storage.ensureDir(config.imagesDir);
+app.use('/images', express.static(config.imagesDir));
+
+// 认证路由（不需要鉴权）
+app.use('/api/auth', authLimiter, authRouter);
+
+// 支付回调（不需要鉴权，虎皮椒服务器直接调用）
+app.post('/api/payment/notify', (req, res) => {
+  try {
+    const result = payment.handleNotify(req.body);
+    res.send(result.success ? 'success' : 'fail');
+  } catch (err) {
+    console.error('支付回调错误:', err.message);
+    res.send('fail');
+  }
+});
+
+// 需要鉴权的 API 路由
+app.use('/api', authMiddleware);
+app.use('/api', imageRouter);
+app.use('/api/history', historyRouter);
+app.use('/api/wallet', walletRouter);
+app.use('/api/payment', paymentRouter);
+
+// SPA fallback
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
+
+app.listen(config.port, () => {
+  console.log(`\n✨ SciTools 后端已启动`);
+  console.log(`📱 http://localhost:${config.port}`);
+  console.log(`\n按 Ctrl+C 停止服务\n`);
+});
+
+module.exports = app;
