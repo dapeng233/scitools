@@ -34,6 +34,11 @@ const routes = [
     path: '/canvas',
     name: 'Canvas',
     component: () => import('@/pages/Canvas.vue')
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('@/pages/Admin.vue')
   }
 ];
 

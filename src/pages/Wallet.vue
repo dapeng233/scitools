@@ -31,8 +31,8 @@
 
         <!-- 充值方式切换 -->
         <div class="pay-tabs">
-          <button class="pay-tab" :class="{ active: payMode === 'online' }" @click="payMode = 'online'">在线支付</button>
           <button class="pay-tab" :class="{ active: payMode === 'code' }" @click="payMode = 'code'">充值码</button>
+          <button class="pay-tab" :class="{ active: payMode === 'online' }" @click="payMode = 'online'">在线支付</button>
         </div>
 
         <!-- 金额选择 -->
@@ -125,7 +125,7 @@ const totalRecharge = ref(0);
 const totalSpent = ref(0);
 const imageCount = ref(0);
 const transactions = ref([]);
-const payMode = ref('online');
+const payMode = ref('code');
 const selectedAmount = ref(5);
 const payType = ref('alipay');
 const paying = ref(false);
@@ -207,10 +207,10 @@ function formatTime(ts) { return new Date(ts).toLocaleString(); }
 </script>
 
 <style scoped>
-.page-title { font-size: 1.6em; color: #333; margin-bottom: 20px; }
+.page-title { font-size: 1.6em; color: var(--text-primary); margin-bottom: 20px; }
 
 .balance-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--accent, #333);
   border-radius: 16px; padding: 28px; color: white; margin-bottom: 20px;
 }
 .balance-main { display: flex; flex-direction: column; margin-bottom: 20px; }
@@ -222,85 +222,87 @@ function formatTime(ts) { return new Date(ts).toLocaleString(); }
 .stat-label { font-size: 0.8em; opacity: 0.7; margin-top: 2px; }
 
 .wallet-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.panel { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
-.panel h3 { font-size: 1.2em; margin-bottom: 18px; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 8px; }
+.panel { background: var(--bg-card); border-radius: 12px; padding: 24px; box-shadow: var(--shadow-card); }
+.panel h3 { font-size: 1.2em; margin-bottom: 18px; color: var(--text-primary); border-bottom: 2px solid var(--accent); padding-bottom: 8px; }
 
 .pay-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
 .pay-tab {
-  flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;
-  background: white; cursor: pointer; font-weight: 600; font-size: 0.95em; transition: all 0.2s;
+  flex: 1; padding: 10px; border: 2px solid var(--border-color); border-radius: 8px;
+  background: var(--bg-card); cursor: pointer; font-weight: 600; font-size: 0.95em; transition: all 0.2s; color: var(--text-primary);
 }
-.pay-tab.active { border-color: #667eea; background: #f0f2ff; color: #667eea; }
+.pay-tab.active { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
 
 .recharge-options { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 .recharge-option {
-  flex: 1; min-width: 80px; padding: 14px; border: 2px solid #e0e0e0;
-  border-radius: 10px; background: white; cursor: pointer; text-align: center; transition: all 0.3s;
+  flex: 1; min-width: 80px; padding: 14px; border: 2px solid var(--border-color);
+  border-radius: 10px; background: var(--bg-card); cursor: pointer; text-align: center; transition: all 0.3s;
 }
-.recharge-option:hover { border-color: #667eea; }
-.recharge-option.selected { border-color: #667eea; background: #f0f2ff; }
-.opt-amount { display: block; font-size: 1.3em; font-weight: 700; color: #333; }
-.opt-desc { display: block; font-size: 0.8em; color: #999; margin-top: 4px; }
+.recharge-option:hover { border-color: var(--accent); }
+.recharge-option.selected { border-color: var(--accent); background: var(--accent-bg); }
+.opt-amount { display: block; font-size: 1.3em; font-weight: 700; color: var(--text-primary); }
+.opt-desc { display: block; font-size: 0.8em; color: var(--text-muted); margin-top: 4px; }
 
 .pay-type-row { display: flex; gap: 8px; margin-bottom: 16px; }
 .pay-type-btn {
-  flex: 1; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px;
-  background: white; cursor: pointer; font-weight: 600; transition: all 0.2s;
+  flex: 1; padding: 10px; border: 2px solid var(--border-color); border-radius: 8px;
+  background: var(--bg-card); cursor: pointer; font-weight: 600; transition: all 0.2s; color: var(--text-primary);
 }
-.pay-type-btn.active { border-color: #667eea; background: #f0f2ff; color: #667eea; }
+.pay-type-btn.active { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
 
 .form-group { margin-bottom: 16px; }
-.form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 0.95em; }
-.form-group small { display: block; margin-top: 4px; color: #999; font-size: 0.85em; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-primary); font-size: 0.95em; }
+.form-group small { display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.85em; }
 .input-field {
-  width: 100%; padding: 10px 12px; border: 2px solid #e0e0e0;
+  width: 100%; padding: 10px 12px; border: 2px solid var(--border-color);
   border-radius: 8px; font-size: 0.95em; transition: border-color 0.3s; box-sizing: border-box;
+  background: var(--bg-input); color: var(--text-primary);
 }
-.input-field:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+.input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
 
 .btn {
   width: 100%; padding: 12px; border: none; border-radius: 8px;
   font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s;
 }
-.btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102,126,234,0.3); }
+.btn-primary { background: var(--accent, #333); color: white; }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .btn-check { background: #27ae60; color: white; margin-top: 8px; }
 .btn-check:hover { background: #219a52; }
-.btn-cancel { background: #f0f0f0; color: #666; margin-top: 8px; }
-.btn-cancel:hover { background: #e0e0e0; }
+.btn-cancel { background: var(--bg-tag); color: var(--text-secondary); margin-top: 8px; }
+.btn-cancel:hover { background: var(--border-color); }
 
-.recharge-msg { margin-top: 12px; padding: 10px; border-radius: 8px; background: #f0fff4; color: #2d8a4e; font-size: 0.95em; }
-.recharge-msg.error { background: #fff5f5; color: #c0392b; }
+.recharge-msg { margin-top: 12px; padding: 10px; border-radius: 8px; background: var(--bg-success); color: #2d8a4e; font-size: 0.95em; }
+.recharge-msg.error { background: var(--bg-error); color: #e74c3c; }
 
 .pay-modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  position: fixed; inset: 0; background: var(--overlay-bg);
   display: flex; align-items: center; justify-content: center; z-index: 1000;
 }
 .pay-modal {
-  background: white; padding: 32px; border-radius: 16px;
+  background: var(--bg-card); padding: 32px; border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 360px; text-align: center;
 }
-.pay-modal h4 { font-size: 1.3em; margin-bottom: 12px; color: #333; }
-.pay-hint { color: #999; font-size: 0.9em; margin: 8px 0; }
+.pay-modal h4 { font-size: 1.3em; margin-bottom: 12px; color: var(--text-primary); }
+.pay-modal p { color: var(--text-secondary); }
+.pay-hint { color: var(--text-muted); font-size: 0.9em; margin: 8px 0; }
 .pay-status-msg { margin-top: 12px; font-size: 0.9em; color: #e74c3c; }
 .pay-status-msg.success { color: #27ae60; }
 
-.empty-state { display: flex; align-items: center; justify-content: center; min-height: 200px; color: #999; }
+.empty-state { display: flex; align-items: center; justify-content: center; min-height: 200px; color: var(--text-muted); }
 .transaction-list { max-height: 400px; overflow-y: auto; }
 .transaction-item {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 12px; margin-bottom: 8px; background: #f8f9ff; border-radius: 8px;
+  padding: 12px; margin-bottom: 8px; background: var(--bg-info); border-radius: 8px;
 }
 .tx-left { display: flex; align-items: center; gap: 10px; }
 .tx-icon { font-size: 1.2em; }
-.tx-desc { font-weight: 600; color: #333; font-size: 0.95em; }
-.tx-time { font-size: 0.8em; color: #999; margin-top: 2px; }
+.tx-desc { font-weight: 600; color: var(--text-primary); font-size: 0.95em; }
+.tx-time { font-size: 0.8em; color: var(--text-muted); margin-top: 2px; }
 .tx-right { text-align: right; }
 .tx-amount { display: block; font-weight: 700; font-size: 1em; }
 .tx-amount.recharge { color: #2d8a4e; }
 .tx-amount.deduct { color: #e74c3c; }
-.tx-balance { font-size: 0.8em; color: #999; }
+.tx-balance { font-size: 0.8em; color: var(--text-muted); }
 
 @media (max-width: 1024px) { .wallet-layout { grid-template-columns: 1fr; } }
 </style>

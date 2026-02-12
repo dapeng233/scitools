@@ -52,6 +52,16 @@ app.post('/api/payment/notify', (req, res) => {
   }
 });
 
+// 管理员接口（只需要 Admin Key，不需要用户登录）
+const adminRouter = require('./routes/admin');
+app.use('/api/admin', (req, res, next) => {
+  const adminKey = req.headers['x-admin-key'];
+  if (adminKey !== config.adminKey) {
+    return res.status(403).json({ error: '无权限' });
+  }
+  next();
+}, adminRouter);
+
 // 需要鉴权的 API 路由
 app.use('/api', authMiddleware);
 app.use('/api', imageRouter);

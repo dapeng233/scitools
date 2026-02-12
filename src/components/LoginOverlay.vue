@@ -146,7 +146,7 @@ async function handleReset() {
 .login-overlay {
   position: fixed;
   inset: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--bg-primary, #f7f7f8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,7 +154,7 @@ async function handleReset() {
 }
 
 .login-box {
-  background: white;
+  background: var(--bg-card, white);
   padding: 40px;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -162,24 +162,25 @@ async function handleReset() {
   width: 380px;
 }
 
-.login-box h2 { margin-bottom: 6px; color: #333; font-size: 1.6em; }
-.login-box > p { color: #666; margin-bottom: 20px; font-size: 0.95em; }
+.login-box h2 { margin-bottom: 6px; color: var(--text-primary, #333); font-size: 1.6em; }
+.login-box > p { color: var(--text-secondary, #666); margin-bottom: 20px; font-size: 0.95em; }
 
 .login-input {
   width: 100%;
   padding: 12px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-color, #e0e0e0);
   border-radius: 8px;
   font-size: 1em;
   margin-bottom: 12px;
   transition: border-color 0.3s;
   box-sizing: border-box;
+  background: var(--bg-input, white);
+  color: var(--text-primary, #333);
 }
 
 .login-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--accent);
 }
 
 .code-row {
@@ -192,10 +193,10 @@ async function handleReset() {
 
 .code-btn {
   padding: 0 16px;
-  border: 2px solid #667eea;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  background: white;
-  color: #667eea;
+  background: var(--bg-card, white);
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 0.85em;
   cursor: pointer;
@@ -203,7 +204,7 @@ async function handleReset() {
   transition: all 0.2s;
 }
 
-.code-btn:hover:not(:disabled) { background: #f0f2ff; }
+.code-btn:hover:not(:disabled) { background: var(--bg-card-hover); }
 .code-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .login-btn {
@@ -211,7 +212,7 @@ async function handleReset() {
   padding: 12px;
   border: none;
   border-radius: 8px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--accent, #333);
   color: white;
   font-size: 1em;
   font-weight: 600;
@@ -220,8 +221,7 @@ async function handleReset() {
 }
 
 .login-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  opacity: 0.85;
 }
 
 .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -234,7 +234,7 @@ async function handleReset() {
 }
 
 .login-links a {
-  color: #667eea;
+  color: var(--text-secondary);
   font-size: 0.9em;
   cursor: pointer;
   text-decoration: none;

@@ -230,7 +230,7 @@ function sendToImageGen() {
 <style scoped>
 .page-title {
   font-size: 1.6em;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 16px;
 }
 
@@ -240,9 +240,9 @@ function sendToImageGen() {
   gap: 12px;
   align-items: center;
   padding: 12px 16px;
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-card);
   margin-bottom: 16px;
 }
 
@@ -255,23 +255,23 @@ function sendToImageGen() {
 .tool-label {
   font-size: 0.85em;
   font-weight: 600;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .tool-btn {
   padding: 6px 12px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-color);
   border-radius: 8px;
-  background: white;
+  background: var(--bg-card);
   cursor: pointer;
   font-size: 0.85em;
   font-weight: 600;
-  color: #555;
+  color: var(--text-on-card);
   transition: all 0.2s;
 }
 
-.tool-btn:hover { border-color: #667eea; color: #667eea; }
-.tool-btn.active { border-color: #667eea; background: #f0f2ff; color: #667eea; }
+.tool-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tool-btn.active { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
 
 .action-btn.primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -280,16 +280,16 @@ function sendToImageGen() {
 }
 
 .range-input { width: 100px; cursor: pointer; }
-.range-value { font-size: 0.8em; color: #999; min-width: 36px; }
+.range-value { font-size: 0.8em; color: var(--text-muted); min-width: 36px; }
 .color-input { width: 32px; height: 32px; border: none; cursor: pointer; border-radius: 6px; }
 
 .tool-actions { margin-left: auto; }
 
 .canvas-container {
   position: relative;
-  background: white;
+  background: var(--bg-card);
   border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -310,10 +310,10 @@ function sendToImageGen() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #999;
+  color: var(--text-muted);
   pointer-events: auto;
 }
 
-.canvas-placeholder p { font-weight: 600; font-size: 1.1em; color: #666; }
+.canvas-placeholder p { font-weight: 600; font-size: 1.1em; color: var(--text-secondary); }
 .canvas-placeholder small { margin-top: 6px; font-size: 0.85em; }
 </style>

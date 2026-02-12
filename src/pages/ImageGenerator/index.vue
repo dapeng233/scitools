@@ -1,26 +1,50 @@
 <template>
   <div class="image-generator">
-    <h2 class="page-title">🎨 AI 作图</h2>
+    <h2 class="page-title">AI 作图</h2>
     <div class="generator-layout">
       <!-- 左侧：输入面板 -->
       <div class="panel input-panel">
         <h3>生成设置</h3>
 
-        <!-- 计费模式切换 -->
+        <!-- 使用方式切换 -->
         <div class="form-group">
           <label>使用方式</label>
           <div class="mode-switch">
             <button
               class="mode-btn"
-              :class="{ active: billingMode === 'wallet' }"
-              @click="switchMode('wallet')"
-            >💰 余额模式</button>
-            <button
-              class="mode-btn"
               :class="{ active: billingMode === 'google' }"
               @click="switchMode('google')"
-            >🔑 Google API</button>
+            >Google API</button>
+            <button
+              class="mode-btn"
+              :class="{ active: billingMode === 'dmxapi' }"
+              @click="switchMode('dmxapi')"
+            >DMX API</button>
+            <button
+              class="mode-btn"
+              :class="{ active: billingMode === 'wallet' }"
+              @click="switchMode('wallet')"
+            >余额</button>
           </div>
+        </div>
+
+        <!-- Google API 模式 -->
+        <div v-if="billingMode === 'google'" class="form-group">
+          <label>Google API Key *</label>
+          <input v-model="googleApiKey" type="password" placeholder="输入你的 Google AI Studio API Key" class="input-field" />
+          <small>从 <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a> 获取，免费使用</small>
+        </div>
+        <div v-if="billingMode === 'google'" class="form-group">
+          <label>代理地址（国内必填）</label>
+          <input v-model="googleProxy" type="text" placeholder="http://127.0.0.1:7890" class="input-field" />
+          <small>填写本地代理地址，如 Clash 默认 7890、V2Ray 默认 10809</small>
+        </div>
+
+        <!-- DMX API 密钥模式 -->
+        <div v-if="billingMode === 'dmxapi'" class="form-group">
+          <label>DMX API 密钥 *</label>
+          <input v-model="dmxapiKey" type="password" placeholder="输入你的 DMX API 密钥" class="input-field" />
+          <small>从 <a href="https://www.dmxapi.cn" target="_blank">dmxapi.cn</a> 获取</small>
         </div>
 
         <!-- 余额模式信息 -->
@@ -32,16 +56,9 @@
           </div>
         </div>
 
-        <!-- Google API 模式 -->
-        <div v-if="billingMode === 'google'" class="form-group">
-          <label>Google API Key *</label>
-          <input v-model="googleApiKey" type="password" placeholder="输入你的 Google AI Studio API Key" class="input-field" />
-          <small>从 <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a> 获取，免费使用，密钥仅用于本次请求</small>
-        </div>
-        <div v-if="billingMode === 'google'" class="form-group">
-          <label>代理地址（国内必填）</label>
-          <input v-model="googleProxy" type="text" placeholder="http://127.0.0.1:7890" class="input-field" />
-          <small>填写本地代理地址，如 Clash 默认 7890、V2Ray 默认 10809</small>
+        <!-- 充值提示 -->
+        <div v-if="billingMode !== 'wallet'" class="form-group">
+          <div class="tip-inline">如果不方便申请 API 或短期使用，可切换到「余额」模式，<router-link to="/wallet">前往充值</router-link>。</div>
         </div>
 
         <!-- 模型选择 -->
@@ -49,7 +66,7 @@
           <label>选择模型 *</label>
           <select v-model="selectedModel" class="input-field">
             <option v-for="m in models" :key="m.id" :value="m.id">
-              {{ m.name }} {{ formatPricing(m.pricing) }}
+              {{ m.name }}
             </option>
           </select>
         </div>
@@ -99,7 +116,7 @@
 
         <!-- 生成按钮 -->
         <button class="btn btn-primary" @click="handleGenerate" :disabled="generating">
-          {{ generating ? '⏳ 生成中...' : '🎨 生成图片' }}
+          {{ generating ? '生成中...' : '生成图片' }}
         </button>
       </div>
 
@@ -120,7 +137,7 @@
 
         <!-- 结果 -->
         <div v-if="activeTab === 'result'" class="result-area">
-          <div v-if="errorMsg" class="error-message">❌ {{ errorMsg }}</div>
+          <div v-if="errorMsg" class="error-message">{{ errorMsg }}</div>
           <div v-else-if="result" class="result-content">
             <div class="result-image">
               <img :src="result.imageUrl" alt="生成的图片" />
@@ -128,16 +145,18 @@
             <div class="result-info">
               <p><strong>模型:</strong> {{ result.model }}</p>
               <p><strong>提示词:</strong> {{ result.prompt }}</p>
-              <p v-if="result.cost">
-                <strong>本次费用:</strong>
-                <span class="cost-tag">￥{{ result.cost.totalCost }}</span>
-                {{ result.cost.description }}
+              <p v-if="result.cost && result.cost.tokenUsage">
+                <strong>Token 消耗:</strong>
+                输入 {{ result.cost.tokenUsage.input || '-' }} / 输出 {{ result.cost.tokenUsage.output || '-' }}
+              </p>
+              <p v-else-if="result.cost">
+                <strong>Token 消耗:</strong> {{ result.cost.description }}
               </p>
             </div>
             <div class="result-actions">
-              <a :href="result.imageUrl" download="generated-image.png" class="btn btn-secondary">💾 下载图片</a>
-              <a :href="result.imageUrl" target="_blank" class="btn btn-secondary">🔗 新标签页打开</a>
-              <router-link :to="'/canvas?image=' + encodeURIComponent(result.imageUrl)" class="btn btn-secondary">✏️ 编辑图片</router-link>
+              <a :href="result.imageUrl" download="generated-image.png" class="btn btn-secondary">下载图片</a>
+              <a :href="result.imageUrl" target="_blank" class="btn btn-secondary">新标签页打开</a>
+              <router-link :to="'/canvas?image=' + encodeURIComponent(result.imageUrl)" class="btn btn-secondary">编辑图片</router-link>
             </div>
             <div v-if="result.walletInfo" class="wallet-deduct-info">
               本次扣费 ￥{{ result.walletInfo.charged }} · 剩余余额 ￥{{ result.walletInfo.balance.toFixed(2) }}
@@ -147,7 +166,7 @@
             <p>{{ statusText }}</p>
           </div>
           <div v-else class="empty-state">
-            <p>填写左侧表单并点击"生成图片"</p>
+            <p>填写左侧表单并点击「生成图片」</p>
           </div>
         </div>
 
@@ -186,7 +205,8 @@ const route = useRoute();
 
 const googleApiKey = ref('');
 const googleProxy = ref('');
-const billingMode = ref('wallet');
+const dmxapiKey = ref('');
+const billingMode = ref('google');
 const walletBalance = ref(0);
 const selectedModel = ref('');
 const mode = ref('text');
@@ -198,7 +218,7 @@ const result = ref(null);
 const errorMsg = ref('');
 const activeTab = ref('result');
 const history = ref([]);
-const statusText = ref('⏳ 生成中...');
+const statusText = ref('生成中...');
 const dragOver = ref(false);
 const imagePreview = ref('');
 const selectedFile = ref(null);
@@ -206,13 +226,11 @@ const selectedFile = ref(null);
 onMounted(() => {
   loadModels();
   loadWalletBalance();
-  // 从画板跳转过来时，自动加载编辑后的图片
   if (route.query.from === 'canvas') {
     const dataUrl = sessionStorage.getItem('canvasImage');
     if (dataUrl) {
       mode.value = 'image';
       imagePreview.value = dataUrl;
-      // 将 dataUrl 转为 File 对象
       fetch(dataUrl).then(r => r.blob()).then(blob => {
         selectedFile.value = new File([blob], 'canvas_edit.png', { type: 'image/png' });
       });
@@ -244,13 +262,6 @@ async function loadModels() {
 function switchMode(newMode) {
   billingMode.value = newMode;
   loadModels();
-}
-
-function formatPricing(pricing) {
-  if (!pricing) return '';
-  return pricing.type === 'per_request'
-    ? `（￥${pricing.price}/次）`
-    : '（按 token 计费）';
 }
 
 function handleFileSelect(e) {
@@ -297,6 +308,7 @@ function compressImage(file, maxWidth = 1024, quality = 0.8) {
 }
 
 async function handleGenerate() {
+  if (billingMode.value === 'dmxapi' && !dmxapiKey.value.trim()) { errorMsg.value = '请输入 DMX API 密钥'; return; }
   if (billingMode.value === 'google' && !googleApiKey.value.trim()) { errorMsg.value = '请输入 Google API Key'; return; }
   if (billingMode.value === 'wallet' && walletBalance.value < 0.35) { errorMsg.value = '余额不足，请先充值'; return; }
   if (!selectedModel.value) { errorMsg.value = '请选择模型'; return; }
@@ -316,13 +328,16 @@ async function generateTextToImage() {
   result.value = null;
   errorMsg.value = '';
   activeTab.value = 'result';
-  statusText.value = '⏳ 正在生成图片...';
+  statusText.value = '正在生成图片...';
   try {
     const body = { model: selectedModel.value, prompt: prompt.value };
     if (billingMode.value === 'google') {
       body.provider = 'google';
       body.googleApiKey = googleApiKey.value;
       if (googleProxy.value.trim()) body.proxyUrl = googleProxy.value.trim();
+    } else if (billingMode.value === 'dmxapi') {
+      body.provider = 'dmxapi_key';
+      body.apiKey = dmxapiKey.value;
     } else {
       body.provider = 'wallet';
       body.useWallet = true;
@@ -342,10 +357,10 @@ async function generateImageToImage() {
   result.value = null;
   errorMsg.value = '';
   activeTab.value = 'result';
-  statusText.value = '⏳ 正在压缩图片并上传...';
+  statusText.value = '正在压缩图片并上传...';
   try {
     const compressed = await compressImage(selectedFile.value);
-    statusText.value = '⏳ 图片已上传，等待 API 生成中...';
+    statusText.value = '图片已上传，等待 API 生成中...';
     const formData = new FormData();
     formData.append('model', selectedModel.value);
     formData.append('prompt', imagePrompt.value);
@@ -354,6 +369,9 @@ async function generateImageToImage() {
       formData.append('provider', 'google');
       formData.append('googleApiKey', googleApiKey.value);
       if (googleProxy.value.trim()) formData.append('proxyUrl', googleProxy.value.trim());
+    } else if (billingMode.value === 'dmxapi') {
+      formData.append('provider', 'dmxapi_key');
+      formData.append('apiKey', dmxapiKey.value);
     } else {
       formData.append('provider', 'wallet');
       formData.append('useWallet', 'true');
@@ -400,132 +418,141 @@ function formatTime(ts) {
 
 <style scoped>
 .page-title {
-  font-size: 1.6em;
-  color: #333;
-  margin-bottom: 20px;
+  font-size: 1.3em;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  font-weight: 600;
 }
 
 .generator-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
 }
 
 .panel {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  background: var(--bg-card);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-color);
 }
 
 .panel h3 {
-  font-size: 1.2em;
-  margin-bottom: 18px;
-  color: #333;
-  border-bottom: 2px solid #667eea;
+  font-size: 1em;
+  margin-bottom: 14px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
   padding-bottom: 8px;
 }
 
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   font-weight: 600;
-  color: #333;
-  font-size: 0.95em;
+  color: var(--text-primary);
+  font-size: 0.9em;
 }
 
 .form-group small {
   display: block;
-  margin-top: 4px;
-  color: #999;
-  font-size: 0.85em;
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 0.8em;
+}
+
+.form-group small a {
+  color: var(--text-secondary);
+  text-decoration: underline;
 }
 
 .input-field {
   width: 100%;
-  padding: 10px 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 0.95em;
-  transition: border-color 0.3s;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 0.9em;
+  transition: border-color 0.2s;
   font-family: inherit;
+  background: var(--bg-input);
+  color: var(--text-primary);
 }
 
 .input-field:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--accent);
 }
 
 .textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: 72px;
 }
 
 .radio-group {
   display: flex;
-  gap: 20px;
+  gap: 16px;
 }
 
 .radio-label {
   display: flex;
   align-items: center;
   cursor: pointer;
-  gap: 6px;
+  gap: 5px;
+  color: var(--text-primary);
+  font-size: 0.9em;
 }
 
 .radio-label input[type="radio"] {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   cursor: pointer;
 }
 
 .file-upload-area {
-  border: 2px dashed #667eea;
-  border-radius: 8px;
-  padding: 24px;
+  border: 1px dashed var(--border-color);
+  border-radius: 6px;
+  padding: 20px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s;
-  background: #f8f9ff;
+  transition: all 0.2s;
+  background: var(--bg-upload);
 }
 
 .file-upload-area:hover, .file-upload-area.drag-over {
-  background: #f0f2ff;
-  border-color: #764ba2;
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
 }
 
 .file-upload-area p {
-  color: #333;
-  font-weight: 600;
-  margin-bottom: 4px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  margin-bottom: 2px;
 }
 
 .image-preview {
-  margin-top: 12px;
+  margin-top: 10px;
   text-align: center;
 }
 
 .image-preview img {
   max-width: 100%;
-  max-height: 180px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  max-height: 160px;
+  border-radius: 6px;
 }
 
 .btn {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   border: none;
-  border-radius: 8px;
-  font-size: 1em;
+  border-radius: 6px;
+  font-size: 0.9em;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -534,74 +561,76 @@ function formatTime(ts) {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--accent);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  opacity: 0.85;
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .btn-secondary {
-  background: #f0f0f0;
-  color: #333;
-  margin-top: 12px;
+  background: var(--bg-tag);
+  color: var(--text-primary);
+  margin-top: 8px;
+  font-weight: 500;
 }
 
 .btn-secondary:hover {
-  background: #e0e0e0;
+  background: var(--border-color);
 }
 
 /* 标签页 */
 .tabs {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  border-bottom: 2px solid #e0e0e0;
+  gap: 4px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .tab-btn {
-  padding: 8px 18px;
+  padding: 6px 14px;
   background: none;
   border: none;
   cursor: pointer;
   font-weight: 600;
-  color: #999;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s;
+  font-size: 0.9em;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
 }
 
 .tab-btn.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: var(--text-primary);
+  border-bottom-color: var(--accent);
 }
 
 /* 结果区域 */
 .result-area, .history-area {
-  min-height: 300px;
+  min-height: 280px;
 }
 
 .empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
-  color: #999;
-  font-size: 1.05em;
+  min-height: 280px;
+  color: var(--text-muted);
+  font-size: 0.9em;
 }
 
 .error-message {
-  padding: 16px;
-  background: #fff5f5;
-  border-left: 4px solid #e74c3c;
-  border-radius: 8px;
-  color: #c0392b;
+  padding: 12px;
+  background: var(--bg-error);
+  border-left: 3px solid #e74c3c;
+  border-radius: 6px;
+  color: #e74c3c;
+  font-size: 0.9em;
 }
 
 .result-image {
@@ -610,44 +639,33 @@ function formatTime(ts) {
 
 .result-image img {
   max-width: 100%;
-  max-height: 500px;
-  border-radius: 8px;
+  max-height: 460px;
+  border-radius: 6px;
   object-fit: contain;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .result-info {
-  margin-top: 14px;
-  padding: 14px;
-  background: #f8f9ff;
-  border-radius: 8px;
-  border-left: 4px solid #667eea;
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--bg-info);
+  border-radius: 6px;
+  border-left: 3px solid var(--border-color);
 }
 
 .result-info p {
-  margin: 6px 0;
-  color: #666;
-  font-size: 0.95em;
+  margin: 4px 0;
+  color: var(--text-secondary);
+  font-size: 0.85em;
 }
 
 .result-info strong {
-  color: #333;
-}
-
-.cost-tag {
-  display: inline-block;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.9em;
+  color: var(--text-primary);
 }
 
 .result-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .result-actions .btn {
@@ -656,50 +674,49 @@ function formatTime(ts) {
 
 /* 历史记录 */
 .history-list {
-  max-height: 400px;
+  max-height: 380px;
   overflow-y: auto;
 }
 
 .history-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  margin-bottom: 8px;
-  background: #f8f9ff;
-  border-radius: 8px;
-  border-left: 4px solid #667eea;
+  gap: 10px;
+  padding: 10px;
+  margin-bottom: 6px;
+  background: var(--bg-info);
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .history-item:hover {
-  background: #f0f2ff;
-  transform: translateX(4px);
+  background: var(--bg-card-hover);
 }
 
 .history-thumb {
-  width: 56px;
-  height: 56px;
-  border-radius: 6px;
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
   object-fit: cover;
   flex-shrink: 0;
-  background: #e0e0e0;
+  background: var(--border-color);
 }
 
 .history-prompt {
-  font-weight: 600;
-  color: #333;
+  font-weight: 500;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 280px;
+  max-width: 260px;
+  font-size: 0.9em;
 }
 
 .history-meta {
-  font-size: 0.85em;
-  color: #999;
-  margin-top: 4px;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
 @media (max-width: 1024px) {
@@ -711,71 +728,81 @@ function formatTime(ts) {
 /* 计费模式切换 */
 .mode-switch {
   display: flex;
-  gap: 8px;
-  background: #f0f0f0;
-  border-radius: 8px;
-  padding: 4px;
+  gap: 0;
+  background: var(--bg-tag);
+  border-radius: 6px;
+  padding: 3px;
 }
 
 .mode-btn {
   flex: 1;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   background: transparent;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.9em;
-  color: #666;
-  transition: all 0.3s;
+  font-size: 0.85em;
+  color: var(--text-muted);
+  transition: all 0.2s;
 }
 
 .mode-btn.active {
-  background: white;
-  color: #667eea;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
 .wallet-info {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #f0fff4;
-  border-radius: 8px;
-  border-left: 4px solid #48bb78;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bg-info);
+  border-radius: 6px;
+  border-left: 3px solid #48bb78;
+  font-size: 0.9em;
 }
 
 .wallet-balance {
   font-weight: 700;
   color: #2d8a4e;
-  font-size: 1.05em;
 }
 
 .wallet-price {
-  color: #999;
+  color: var(--text-muted);
   font-size: 0.85em;
 }
 
 .wallet-link {
   margin-left: auto;
-  color: #667eea;
+  color: var(--text-secondary);
   font-weight: 600;
-  text-decoration: none;
-  font-size: 0.9em;
-}
-
-.wallet-link:hover {
   text-decoration: underline;
+  font-size: 0.85em;
 }
 
 .wallet-deduct-info {
-  margin-top: 10px;
-  padding: 8px 12px;
-  background: #fff8e1;
-  border-left: 4px solid #ffc107;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--bg-info);
+  border-left: 3px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+}
+
+.tip-inline {
+  padding: 8px 10px;
+  background: var(--bg-info);
   border-radius: 6px;
-  color: #666;
-  font-size: 0.9em;
+  color: var(--text-muted);
+  font-size: 0.8em;
+  line-height: 1.5;
+}
+
+.tip-inline a {
+  color: var(--text-secondary);
+  text-decoration: underline;
 }
 </style>

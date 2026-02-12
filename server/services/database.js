@@ -86,6 +86,19 @@ db.exec(`
 
   CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
   CREATE INDEX IF NOT EXISTS idx_orders_no ON orders(order_no);
+
+  CREATE TABLE IF NOT EXISTS recharge_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
+    amount REAL NOT NULL,
+    used INTEGER DEFAULT 0,
+    used_by INTEGER DEFAULT NULL,
+    used_at TEXT DEFAULT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (used_by) REFERENCES users(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_recharge_codes_code ON recharge_codes(code);
 `);
 
 module.exports = db;

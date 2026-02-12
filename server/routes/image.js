@@ -22,7 +22,12 @@ function resolveApiConfig(body) {
     return { provider: 'google', apiKey: body.googleApiKey, useWallet: false, proxyUrl: body.proxyUrl || '' };
   }
 
-  // 默认余额模式（走 dmxapi）
+  if (provider === 'dmxapi_key') {
+    if (!body.apiKey) throw new Error('请输入 dmxapi 密钥');
+    return { provider: 'dmxapi', apiKey: body.apiKey, useWallet: false };
+  }
+
+  // 默认余额模式（走 dmxapi + 站长 key）
   if (!config.ownerApiKey) throw new Error('站长未配置 API Key，暂不支持余额模式');
   return { provider: 'dmxapi', apiKey: config.ownerApiKey, useWallet: true };
 }

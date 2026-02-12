@@ -1,69 +1,12 @@
 const express = require('express');
-const wallet = require('../services/wallet');
-const config = require('../config');
 const db = require('../services/database');
+const wallet = require('../services/wallet');
 const crypto = require('crypto');
 
 const router = express.Router();
 
-// 获取余额
-router.get('/balance', (req, res) => {
-  res.json(wallet.getBalance(req.userId));
-});
-
-// 充值（使用充值码）
-router.post('/recharge', (req, res) => {
-  try {
-    const { rechargeCode } = req.body;
-
-    if (!rechargeCode) {
-      return res.status(400).json({ error: '请输入充值码' });
-    }
-
-    const code = rechargeCode.trim().toUpperCase();
-
-    // 查找充值码
-    const codeRecord = db.prepare('SELECT * FROM recharge_codes WHERE code = ? AND used = 0').get(code);
-
-    if (!codeRecord) {
-      return res.status(400).json({ error: '无效或已使用的充值码' });
-    }
-
-    // 标记充值码已使用
-    db.prepare("UPDATE recharge_codes SET used = 1, used_by = ?, used_at = datetime('now') WHERE id = ?")
-      .run(req.userId, codeRecord.id);
-
-    // 充值到用户余额
-    const newBalance = wallet.recharge(req.userId, codeRecord.amount);
-
-    res.json({
-      message: `充值成功 ￥${codeRecord.amount}`,
-      balance: newBalance
-    });
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-});
-
-// 交易记录
-router.get('/transactions', (req, res) => {
-  const limit = parseInt(req.query.limit) || 50;
-  res.json(wallet.getTransactions(req.userId, limit));
-});
-
-// ========== 管理员接口 ==========
-
-// 管理员验证中间件
-function adminAuth(req, res, next) {
-  const adminKey = req.headers['x-admin-key'];
-  if (adminKey !== config.adminKey) {
-    return res.status(403).json({ error: '无权限' });
-  }
-  next();
-}
-
 // 生成充值码
-router.post('/admin/generate-codes', adminAuth, (req, res) => {
+router.post('/generate-codes', (req, res) => {
   try {
     const { amount, count = 1 } = req.body;
 
@@ -102,7 +45,7 @@ router.post('/admin/generate-codes', adminAuth, (req, res) => {
 });
 
 // 获取所有充值码
-router.get('/admin/codes', adminAuth, (req, res) => {
+router.get('/codes', (req, res) => {
   try {
     const codes = db.prepare(`
       SELECT rc.*, u.email as used_by_email
@@ -117,7 +60,7 @@ router.get('/admin/codes', adminAuth, (req, res) => {
 });
 
 // 删除未使用的充值码
-router.delete('/admin/codes/:id', adminAuth, (req, res) => {
+router.delete('/codes/:id', (req, res) => {
   try {
     const result = db.prepare('DELETE FROM recharge_codes WHERE id = ? AND used = 0').run(req.params.id);
     if (result.changes === 0) {
