@@ -1,6 +1,6 @@
 <template>
   <div class="wallet-page">
-    <h2 class="page-title">💰 我的钱包</h2>
+    <h2 class="page-title">💰 我的钱包 <span class="discount-badge">80% OFF</span></h2>
 
     <!-- 余额卡片 -->
     <div class="balance-card">
@@ -207,7 +207,21 @@ function formatTime(ts) { return new Date(ts).toLocaleString(); }
 </script>
 
 <style scoped>
-.page-title { font-size: 1.6em; color: var(--text-primary); margin-bottom: 20px; }
+.page-title { font-size: 1.6em; color: var(--text-primary); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+.discount-badge {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  font-size: 0.5em;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+  animation: pulse 2s infinite;
+  box-shadow: 0 2px 8px rgba(238, 90, 36, 0.4);
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
 
 .balance-card {
   background: var(--accent, #333);

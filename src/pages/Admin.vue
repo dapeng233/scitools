@@ -28,11 +28,16 @@
 
       <!-- 生成充值码 -->
       <div class="panel">
-        <h3>生成充值码</h3>
+        <h3>生成充值码 <span class="discount-info">🎉 当前优惠: 8折</span></h3>
         <div class="form-row">
           <div class="form-group">
             <label>金额 (元)</label>
             <input v-model.number="generateAmount" type="number" min="1" step="1" class="input-field" />
+            <div class="price-calc" v-if="generateAmount > 0">
+              <span class="calc-item">原价: <strong>￥{{ (generateAmount / 0.8).toFixed(2) }}</strong></span>
+              <span class="calc-item discount">8折优惠: <strong>￥{{ generateAmount }}</strong></span>
+              <span class="calc-item save">节省: ￥{{ (generateAmount / 0.8 - generateAmount).toFixed(2) }}</span>
+            </div>
           </div>
           <div class="form-group">
             <label>数量</label>
@@ -525,5 +530,44 @@ onMounted(() => {
 
 .text-muted {
   color: var(--text-muted);
+}
+
+.discount-info {
+  font-size: 0.75em;
+  font-weight: 600;
+  color: #ee5a24;
+  margin-left: 8px;
+}
+
+.price-calc {
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--bg-info);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85em;
+}
+
+.calc-item {
+  color: var(--text-secondary);
+}
+
+.calc-item strong {
+  color: var(--text-primary);
+}
+
+.calc-item.discount {
+  color: #27ae60;
+}
+
+.calc-item.discount strong {
+  color: #27ae60;
+}
+
+.calc-item.save {
+  color: #ee5a24;
+  font-weight: 600;
 }
 </style>

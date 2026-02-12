@@ -60,6 +60,19 @@
         图片生成需要一定时间，请耐心等待。超时可换模型或简化提示词。
       </div>
     </div>
+
+    <!-- 联系方式 -->
+    <div class="help-panel">
+      <h3>联系我们</h3>
+      <p>如有任何问题或建议，欢迎通过以下方式联系：</p>
+      <div class="contact-box">
+        <span class="contact-icon">📧</span>
+        <div class="contact-info">
+          <span class="contact-label">邮箱</span>
+          <a href="mailto:zhangpeng0626@qq.com" class="contact-email">zhangpeng0626@qq.com</a>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -183,5 +196,42 @@ const dmxSteps = [
   margin-top: 14px;
   color: var(--text-secondary);
   font-size: 0.95em;
+}
+
+.contact-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px 20px;
+  background: var(--bg-info);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.contact-icon {
+  font-size: 2em;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contact-label {
+  font-size: 0.85em;
+  color: var(--text-muted);
+}
+
+.contact-email {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 1.1em;
+  text-decoration: none;
+}
+
+.contact-email:hover {
+  text-decoration: underline;
 }
 </style>
